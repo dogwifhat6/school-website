@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '5mb' })); // allow base64 images
+app.use(express.json({ limit: '50mb' })); // allow large base64 images
 
 // Path to data file for simple persistence
 const DATA_FILE = path.join(__dirname, 'admin-data.json');
@@ -45,9 +45,24 @@ async function saveData(data) {
   await fs.writeFile(DATA_FILE, toSave, 'utf-8');
 }
 
+// Root route - API information
+app.get('/', (_req, res) => {
+  res.json({
+    message: 'School Website API Server',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      data: '/api/data',
+      faculty: '/api/faculty',
+      facilities: '/api/facilities',
+      events: '/api/events'
+    }
+  });
+});
+
 // Simple health check
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true });
+  res.json({ ok: true, message: 'API is running' });
 });
 
 // Get all admin-managed data
