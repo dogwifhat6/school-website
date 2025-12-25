@@ -153,9 +153,18 @@ export const AdminProvider = ({ children }) => {
 
   // Sync data to backend API whenever it changes
   const syncToBackend = async (data) => {
+    console.log('💾 Attempting to save data...');
+    console.log('💾 Backend URL:', API_URL);
+    console.log('💾 Current hostname:', window.location.hostname);
+    
     // Only sync if backend URL is configured (not localhost in production)
     if (API_URL === 'http://localhost:4000' && window.location.hostname !== 'localhost') {
-      console.warn('Backend not configured - using localStorage only');
+      console.error('========================================');
+      console.error('❌❌❌ BACKEND NOT CONFIGURED! ❌❌❌');
+      console.error('Data is ONLY being saved to localStorage!');
+      console.error('Visitors will NOT see admin changes!');
+      console.error('Fix: Set VITE_API_URL in Vercel and redeploy!');
+      console.error('========================================');
       // Save to localStorage as backup
       localStorage.setItem('school_name', data.settings?.schoolName || schoolName);
       localStorage.setItem('school_logo', data.settings?.schoolLogo || schoolLogo);
@@ -170,6 +179,7 @@ export const AdminProvider = ({ children }) => {
     }
 
     try {
+      console.log('💾 Sending data to backend:', `${API_URL}/api/data`);
       const response = await fetch(`${API_URL}/api/data`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -180,7 +190,14 @@ export const AdminProvider = ({ children }) => {
         throw new Error(`Backend responded with status: ${response.status}`);
       }
 
-      console.log('✅ Data synced to backend successfully');
+      const result = await response.json();
+      console.log('========================================');
+      console.log('✅✅✅ DATA SAVED TO BACKEND! ✅✅✅');
+      console.log('✅ Data is now PERMANENT and visible to all visitors!');
+      console.log('✅ Faculty count:', result.faculty?.length || 0);
+      console.log('✅ Events count:', result.events?.length || 0);
+      console.log('✅ Facilities count:', result.facilities?.length || 0);
+      console.log('========================================');
       
       // Also save to localStorage as backup
       localStorage.setItem('school_name', data.settings?.schoolName || schoolName);
@@ -193,8 +210,13 @@ export const AdminProvider = ({ children }) => {
       if (data.facilities) localStorage.setItem('facilities', JSON.stringify(data.facilities));
       if (data.events) localStorage.setItem('events', JSON.stringify(data.events));
     } catch (error) {
-      console.error('❌ Failed to sync to backend:', error);
+      console.error('========================================');
+      console.error('❌ FAILED to save to backend!');
+      console.error('Error:', error.message);
       console.error('Backend URL:', API_URL);
+      console.error('⚠️ Data saved to localStorage only (NOT permanent!)');
+      console.error('⚠️ Visitors will NOT see this data!');
+      console.error('========================================');
       // Still save to localStorage as backup
       localStorage.setItem('school_name', data.settings?.schoolName || schoolName);
       localStorage.setItem('school_logo', data.settings?.schoolLogo || schoolLogo);
